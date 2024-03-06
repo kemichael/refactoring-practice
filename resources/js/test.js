@@ -1,7 +1,7 @@
-$(document).ready(function(){
-    loadSort();
-});
 
+$(function(){
+    loadSort();
+})
 //tablesorter読み込み用
 function loadSort(){
     $('#pr-table').tablesorter();
@@ -9,8 +9,7 @@ function loadSort(){
 
 $(function(){
     console.log('読み込みOK');
-    
-
+    deleteEvent();
     //検索ボタン押下イベントです
     $('#search-btn').on('click', function(e){
         console.log('検索押した');
@@ -28,11 +27,16 @@ $(function(){
             let newTable = $(data).find('#products-table');
             $('#products-table').replaceWith(newTable);
             loadSort();
+            deleteEvent();
         }).fail(function(){
             alert('通信失敗');
         })
     })
 
+    
+})
+
+function deleteEvent(){
     //削除ボタン押下イベント
     $('.delete-btn').on('click', function(e){
         e.preventDefault();
@@ -65,4 +69,4 @@ $(function(){
         }
         
     })
-})
+}

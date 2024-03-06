@@ -6,12 +6,15 @@ use Illuminate\Http\Request;
 use App\Http\Requests\ProductRequest;
 use App\Models\product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class ProductController extends Controller
 {
+    // デプロイテスト
     // 一覧表示
     public function showList(Request $request){
+        Log::info('一覧表示処理スタート');
         //受け取ったform内のname="keyword"とnome="search-company"を変数に詰める。
         $keyword = $request->input('keyword');
         $searchCompany = $request->input('search-company');
@@ -22,9 +25,7 @@ class ProductController extends Controller
 
         $model = New product;
         $products = $model->searchList($keyword, $searchCompany, $min_price, $max_price, $min_stock, $max_stock);
-
         $companies = DB::table('companies')->get();
-
         return view('lists',['products' => $products, 'companies' => $companies]);
         
     }
@@ -42,7 +43,6 @@ class ProductController extends Controller
     //新規登録処理
     public function registSubmit(ProductRequest $request) {
         $model = New product;
-        
         DB::beginTransaction();
         try{
             $image = $request->file('img_path');
