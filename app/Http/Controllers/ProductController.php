@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    // デプロイテスト
+    // デプロイテスト2
     // 一覧表示
     public function showList(Request $request){
         Log::info('一覧表示処理スタート');
