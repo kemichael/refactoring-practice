@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class Product extends Model
 {
     use HasFactory;
+    const PAGINATE_COUNT = 10;
 
     public function searchProduct($request) {
         $query = DB::table('products')
@@ -42,7 +43,7 @@ class Product extends Model
             $query->where('products.price', '<=', $max_stock);
         }
 
-        return $query->simplePaginate(10);
+        return $query->simplePaginate(self::PAGINATE_COUNT);
     }
 
 }
