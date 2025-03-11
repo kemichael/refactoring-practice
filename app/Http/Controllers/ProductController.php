@@ -11,11 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    // デプロイテスト2
     // 一覧表示
-    public function showList(Request $request){
-        Log::info('一覧表示処理スタート');
-        //受け取ったform内のname="keyword"とnome="search-company"を変数に詰める。
+    public function ichiran(Request $request){
         $keyword = $request->input('keyword');
         $searchCompany = $request->input('search-company');
         $min_price = $request->input('min_price');
@@ -23,28 +20,67 @@ class ProductController extends Controller
         $min_stock = $request->input('min_stock');
         $max_stock = $request->input('max_stock');
 
-        $model = New product;
-        $products = $model->searchList($keyword, $searchCompany, $min_price, $max_price, $min_stock, $max_stock);
+        $query = DB::table('products')
+                    ->join('companies', 'products.company_id', '=', 'companies.id')
+                    ->select('products.*', 'companies.company_name');
+
+        if($keyword) {
+            $query->where('products.product_name', 'like', "%{$keyword}%");
+        }
+
+        if($searchCompany) {
+            $query->where('products.company_id', '=', $searchCompany);
+        }
+
+
+        if($min_price) {
+            $query->where('products.price', '>=', $min_price);
+        }
+
+
+        if($max_price) {
+            $query->where('products.price', '<=', $max_price);
+        }
+
+
+        if($min_stock) {
+            $query->where('products.price', '>=', $min_stock);
+        }
+
+        if($max_stock) {
+            $query->where('products.price', '<=', $max_stock);
+        }
+
+        $products = $query->simplePaginate(10);
+
         $companies = DB::table('companies')->get();
         return view('lists',['products' => $products, 'companies' => $companies]);
-        
+
     }
 
 
     //新規登録画面表示
-    public function showRegistForm(){
-        
+    public function showStoreForm(){
+
         $companies = DB::table('companies')->get();
 
         return view('regist', compact('companies'));
     }
 
-    
+
     //新規登録処理
-    public function registSubmit(ProductRequest $request) {
-        $model = New product;
+    public function registSubmit(Request $request) {
+    $model = New product;
         DB::beginTransaction();
         try{
+            $request->validate([
+                'product_name' => 'required|max:255',
+                'company_id' => 'required|integer',
+                'price' => 'required|numeric',
+                'stock' => 'required|integer',
+                'comment' => 'nullable|max:255',
+                'img_path' => 'nullable|image|max:2048',
+            ]);
             $image = $request->file('img_path');
             if($image){
                 $filename = $image->getClientOriginalName();
@@ -55,36 +91,59 @@ class ProductController extends Controller
             }
 
             $companies = DB::table('companies')->get();
-            
-            $products = $model->registSubmit($request, $img_path);
+
+            DB::table('products')->insert([
+                'product_name'=> $request->input('product_name'),
+                'company_id' => $request->input('company_id'),
+                'price' => $request->input('price'),
+                'stock' => $request->input('stock'),
+                'comment' => $request->input('comment'),
+                'img_path' => $img_path
+            ]);
 
             DB::commit();
             return redirect(route('lists'));
         }catch(Exception $e) {
             DB::rollBack();
         }
-        
+
     }
 
     //商品詳細画面表示
     public function showDetail($id){
-        $model = New product();
-        $product = $model->getProductById($id);
+        $product = DB::table('products')
+            ->join('companies', 'products.company_id', '=', 'companies.id')
+            ->select('products.*', 'companies.company_name')
+            ->where('products.id', '=', $id)
+            ->first();
+
         return view('detail', ['product' => $product]);
     }
 
     //商品編集画面表示
     public function showEdit($id){
         $companies = DB::table('companies')->get();
-        $model = New product;
-        $product = $model->getProductById($id);
+
+        $products = DB::table('products')
+            ->join('companies', 'products.company_id', '=', 'companies.id')
+            ->select('products.*', 'companies.company_name')
+            ->where('products.id', '=', $id)
+            ->first();
+
 
         return view ('edit', ['companies' => $companies, 'product' => $product]);
     }
 
     //商品編集
-    public function registEdit(ProductRequest $request, $id){
-        $model = New product;
+    public function registEdit(Request $request, $id){
+        $request->validate([
+            'product_name' => 'required|max:255',
+            'company_id' => 'required|integer',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer',
+            'comment' => 'nullable|max:255',
+            'img_path' => 'nullable|image|max:2048',
+        ]);
         DB::beginTransaction();
         try{
             $image = $request->file('img_path');
@@ -92,9 +151,27 @@ class ProductController extends Controller
                 $filename = $image->getClientOriginalName();
                 $image->storeAs('public/images', $filename);
                 $img_path = 'storage/images/'.$filename;
-                $model->registEdit($request, $img_path, $id);
+
+                DB::table('products')
+                ->where('products.id', '=', $id)
+                ->update([
+                    'product_name'=> $request->input('product_name'),
+                    'company_id' => $request->input('company_id'),
+                    'price' => $request->input('price'),
+                    'stock' => $request->input('stock'),
+                    'comment' => $request->input('comment'),
+                    'img_path' => $img_path
+                ]);
             }else{
-                $model->registEditNoImg($request, $id);
+                DB::table('products')
+                ->where('products.id', '=', $id)
+                ->update([
+                    'product_name'=> $request->input('product_name'),
+                    'company_id' => $request->input('company_id'),
+                    'price' => $request->input('price'),
+                    'stock' => $request->input('stock'),
+                    'comment' => $request->input('comment'),
+                ]);
             }
 
             DB::commit();
@@ -102,22 +179,22 @@ class ProductController extends Controller
         }catch(Exception $e) {
             DB::rollBack();
         }
-        
+
     }
 
     //削除処理
     public function destroy($id)
-    {   
+    {
         DB::beginTransaction();
         try{
-            $model = new product;
-            $model -> destroyProduct($id);
-            
+            $products = DB::table('products')
+                ->where('products.id', '=', $id) ->delete();
+
             DB::commit();
         }catch(Exception $e) {
             DB::rollBack();
         }
         return redirect()->route('lists');
     }
-    
+
 }

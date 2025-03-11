@@ -4,12 +4,11 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-           
             <div>
-                <h1>商品一覧</h1>                
+                <h1>商品一覧</h1>
             </div>
             <!-- 検索フォーム-->
-            <form action="{{ route('lists') }}" method="GET" id="search-form"><!-- submitを押したら、ルートのname('lists')にvalueを飛ばす-->
+            <form action="{{ route('lists') }}" method="GET" id="search-form">
                 <div class="search">
                     <div class="row">
                         <!-- 商品名 -->
@@ -32,7 +31,7 @@
                         <input type="number" name="min_stock" placeholder="在庫下限" class="form-control search-input col-auto">
                         <span class="col-auto">〜</span>
                         <input type="number" name="max_stock" placeholder="在庫上限" class="form-control search-input col-auto">
-                    </div>                    
+                    </div>
                     <input type="submit" class="btn btn-info search-btn" value="検索" id="search-btn">
                 </div>
             </form>
@@ -70,13 +69,14 @@
                                         @method('delete')
                                         <input type="submit" class="btn btn-danger delete-btn" value="削除" data-delete-id="{{ $product->id}}"></td>
                                     </form>
-                                
+
                             </tr>
                         @endforeach
                     </tbody>
-                   
                 </table>
+
             </div>
+            {{ $products->links() }}
         </div>
     </div>
 </div>

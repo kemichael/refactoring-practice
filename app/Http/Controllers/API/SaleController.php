@@ -6,16 +6,20 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Sale;
-use App\Models\product;
+use App\Models\Product;
 
 class SaleController extends Controller
 {
     public function buy(Request $request){
-        $product_model = new product();
-        $sale_model = new sale();
+
 
         $id = $request->input('product_id');
-        $product = $product_model->getProductById($id);
+
+        $product = DB::table('products')
+            ->join('companies', 'products.company_id', '=', 'companies.id')
+            ->select('products.*', 'companies.company_name')
+            ->where('products.id', '=', $id)
+            ->first();
 
         //商品なし
         if(!$product){
@@ -29,9 +33,23 @@ class SaleController extends Controller
         try {
             DB::beginTransaction();
             //productsテーブルのstock減算
-            $buy = $sale_model->decStock($id);
+            DB::table('products')
+                ->where('id', '=', $id)
+                ->decrement('stock');
+        
+            //減算後の情報を返却
+            $afterBuy = DB::table('products')
+                ->select('id','product_name','stock')
+                ->where('id', '=', $id)
+                ->first();
+            
             //salesテーブルにインサート
-            $sale_model->registSale($id);
+            DB::table('sales')
+                ->insert([
+                    'product_id' => $id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             
             DB::commit();
         } catch (Throwable $e) {
@@ -39,7 +57,7 @@ class SaleController extends Controller
         }
 
         //購入処理後の情報を返却
-        return response()->json($buy);
+        return response()->json($afterBuy);
         
     }
 }
