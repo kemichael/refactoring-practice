@@ -22,7 +22,7 @@ class ProductController extends Controller
         $this->company_model = $company_model;
     }
     // 一覧表示
-    public function ichiran(Request $request){
+    public function showList(Request $request){
         $keyword = $request->input('keyword');
         $searchCompany = $request->input('search-company');
         $min_price = $request->input('min_price');
