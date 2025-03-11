@@ -23,46 +23,7 @@ class ProductController extends Controller
     }
     // 一覧表示
     public function showList(Request $request){
-        $keyword = $request->input('keyword');
-        $searchCompany = $request->input('search-company');
-        $min_price = $request->input('min_price');
-        $max_price = $request->input('max_price');
-        $min_stock = $request->input('min_stock');
-        $max_stock = $request->input('max_stock');
-
-        $query = DB::table('products')
-                    ->join('companies', 'products.company_id', '=', 'companies.id')
-                    ->select('products.*', 'companies.company_name');
-
-        if($keyword) {
-            $query->where('products.product_name', 'like', "%{$keyword}%");
-        }
-
-        if($searchCompany) {
-            $query->where('products.company_id', '=', $searchCompany);
-        }
-
-
-        if($min_price) {
-            $query->where('products.price', '>=', $min_price);
-        }
-
-
-        if($max_price) {
-            $query->where('products.price', '<=', $max_price);
-        }
-
-
-        if($min_stock) {
-            $query->where('products.price', '>=', $min_stock);
-        }
-
-        if($max_stock) {
-            $query->where('products.price', '<=', $max_stock);
-        }
-
-        $products = $query->simplePaginate(10);
-
+        $products = $this->product_model->searchProduct($request);
         $companies = $this->company_model->getAllCompanyInfo();
         return view('lists',['products' => $products, 'companies' => $companies]);
 
