@@ -4,13 +4,23 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Http\Requests\ProductRequest;
-use App\Models\product;
+use App\Models\Product;
+use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 
 class ProductController extends Controller
 {
+
+    protected $product_model;
+    protected $company_model;
+
+    public function __construct(Product $product_model, Company $company_model)
+    {
+        $this->product_model = $product_model;
+        $this->company_model = $company_model;
+    }
     // 一覧表示
     public function ichiran(Request $request){
         $keyword = $request->input('keyword');
@@ -53,7 +63,7 @@ class ProductController extends Controller
 
         $products = $query->simplePaginate(10);
 
-        $companies = DB::table('companies')->get();
+        $companies = $this->company_model->getAllCompanyInfo();
         return view('lists',['products' => $products, 'companies' => $companies]);
 
     }
