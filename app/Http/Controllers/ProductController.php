@@ -69,18 +69,10 @@ class ProductController extends Controller
 
 
     //新規登録処理
-    public function registSubmit(Request $request) {
+    public function registSubmit(ProductRequest $request) {
     $model = New product;
         DB::beginTransaction();
         try{
-            $request->validate([
-                'product_name' => 'required|max:255',
-                'company_id' => 'required|integer',
-                'price' => 'required|numeric',
-                'stock' => 'required|integer',
-                'comment' => 'nullable|max:255',
-                'img_path' => 'nullable|image|max:2048',
-            ]);
             $image = $request->file('img_path');
             if($image){
                 $filename = $image->getClientOriginalName();
@@ -135,15 +127,7 @@ class ProductController extends Controller
     }
 
     //商品編集
-    public function registEdit(Request $request, $id){
-        $request->validate([
-            'product_name' => 'required|max:255',
-            'company_id' => 'required|integer',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'comment' => 'nullable|max:255',
-            'img_path' => 'nullable|image|max:2048',
-        ]);
+    public function registEdit(ProductRequest $request, $id){
         DB::beginTransaction();
         try{
             $image = $request->file('img_path');
