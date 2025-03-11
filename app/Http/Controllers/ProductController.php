@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use App\Models\Company;
+use App\Services\ProductService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -15,11 +16,13 @@ class ProductController extends Controller
 
     protected $product_model;
     protected $company_model;
+    protected $product_service;
 
-    public function __construct(Product $product_model, Company $company_model)
+    public function __construct(Product $product_model, Company $company_model, ProductService $product_service)
     {
         $this->product_model = $product_model;
         $this->company_model = $company_model;
+        $this->product_service = $product_service;
     }
     // 一覧表示
     public function showList(Request $request){
@@ -41,28 +44,9 @@ class ProductController extends Controller
 
     //新規登録処理
     public function registSubmit(ProductRequest $request) {
-    $model = New product;
         DB::beginTransaction();
         try{
-            $image = $request->file('img_path');
-            if($image){
-                $filename = $image->getClientOriginalName();
-                $image->storeAs('public/images', $filename);
-                $img_path = 'storage/images/'.$filename;
-            }else{
-                $img_path = null;
-            }
-
-            $companies = DB::table('companies')->get();
-
-            DB::table('products')->insert([
-                'product_name'=> $request->input('product_name'),
-                'company_id' => $request->input('company_id'),
-                'price' => $request->input('price'),
-                'stock' => $request->input('stock'),
-                'comment' => $request->input('comment'),
-                'img_path' => $img_path
-            ]);
+            $this->product_service->storeProduct($request);
 
             DB::commit();
             return redirect(route('lists'));
