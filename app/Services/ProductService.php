@@ -22,25 +22,51 @@ class ProductService
         $this->company_model = $company_model;
     }
 
+    /**
+     * 登録用配列作成
+     *
+     * @param [type] $request
+     * @return array
+     */
+    private function getInputParameters($request) {
+        return [
+            'product_name' => $request->input('product_name'),
+            'company_id'   => $request->input('company_id'),
+            'price'        => $request->input('price'),
+            'stock'        => $request->input('stock'),
+            'comment'      => $request->input('comment')
+        ];
+    }
+
+    /**
+     * 商品新規登録処理
+     *
+     * @param [type] $request
+     * @return void
+     */
     public function storeProduct($request){
         $image = $request->file('img_path');
-            if($image){
-                $filename = $image->getClientOriginalName();
-                $image->storeAs('public/images', $filename);
-                $img_path = 'storage/images/'.$filename;
-            }else{
-                $img_path = null;
-            }
+        $data = $this->getInputParameters($request);
+        if($image){
+            $data['img_path'] = $this->storeImage($image);
+        }else{
+            $data['img_path'] = null;
+        }
 
-
-            DB::table('products')->insert([
-                'product_name'=> $request->input('product_name'),
-                'company_id' => $request->input('company_id'),
-                'price' => $request->input('price'),
-                'stock' => $request->input('stock'),
-                'comment' => $request->input('comment'),
-                'img_path' => $img_path
-            ]);
+        $this->product_model->storeProduct($data);
     }
+
+    /**
+     * storeImage 画像登録関数
+     *
+     * @param [type] $image
+     * @return string
+     */
+    public function storeImage($image) {
+        $filename = $image->getClientOriginalName();
+        $image->storeAs('public/images', $filename);
+        return 'storage/images/'.$filename;
+    }
+
 
 }

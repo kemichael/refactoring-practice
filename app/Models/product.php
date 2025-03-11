@@ -46,4 +46,8 @@ class Product extends Model
         return $query->simplePaginate(self::PAGINATE_COUNT);
     }
 
+    public function storeProduct($data) {
+        DB::table('products')->insert($data);
+    }
+
 }
