@@ -57,6 +57,21 @@ class ProductService
     }
 
     /**
+     * 商品新規登録処理
+     *
+     * @param [type] $request
+     * @return void
+     */
+    public function updateProduct($request, $id){
+        $image = $request->file('img_path');
+        $data = $this->getInputParameters($request);
+        if($image){
+            $data['img_path'] = $this->storeImage($image);
+        }
+        $this->product_model->updateProduct($data, $id);
+    }
+
+    /**
      * storeImage 画像登録関数
      *
      * @param [type] $image
@@ -67,6 +82,4 @@ class ProductService
         $image->storeAs('public/images', $filename);
         return 'storage/images/'.$filename;
     }
-
-
 }

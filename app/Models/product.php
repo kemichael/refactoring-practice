@@ -11,6 +11,12 @@ class Product extends Model
     use HasFactory;
     const PAGINATE_COUNT = 10;
 
+    /**
+     * 商品検索クエリ
+     *
+     * @param [type] $request
+     * @return void
+     */
     public function searchProduct($request) {
         $query = DB::table('products')
                     ->join('companies', 'products.company_id', '=', 'companies.id')
@@ -46,8 +52,49 @@ class Product extends Model
         return $query->simplePaginate(self::PAGINATE_COUNT);
     }
 
+    /**
+     * 商品新規登録クエリ
+     *
+     * @param [type] $data
+     * @return void
+     */
     public function storeProduct($data) {
         DB::table('products')->insert($data);
+    }
+
+    /**
+     * 商品情報更新クエリ
+     *
+     * @param [type] $data
+     * @param [type] $id
+     * @return void
+     */
+    public function updateProduct($data, $id) {
+        DB::table('products')->where('id', $id)->update($data);
+    }
+
+    /**
+     * 商品詳細情報取得クエリ
+     *
+     * @param [type] $id
+     * @return void
+     */
+    public function getProductDetail($id) {
+        return DB::table('products')
+            ->join('companies', 'products.company_id', '=', 'companies.id')
+            ->select('products.*', 'companies.company_name')
+            ->where('products.id', '=', $id)
+            ->first();
+    }
+
+    /**
+     * 商品削除クエリ
+     *
+     * @param [type] $id
+     * @return void
+     */
+    public function deleteProduct($id) {
+        DB::table('products')->where('id', $id)->delete();
     }
 
 }

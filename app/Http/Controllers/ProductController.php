@@ -24,20 +24,18 @@ class ProductController extends Controller
         $this->company_model = $company_model;
         $this->product_service = $product_service;
     }
+
     // 一覧表示
     public function showList(Request $request){
         $products = $this->product_model->searchProduct($request);
         $companies = $this->company_model->getAllCompanyInfo();
         return view('lists',['products' => $products, 'companies' => $companies]);
-
     }
 
 
     //新規登録画面表示
-    public function showStoreForm(){
-
+    public function showStoreForm() {
         $companies = DB::table('companies')->get();
-
         return view('regist', compact('companies'));
     }
 
@@ -47,37 +45,23 @@ class ProductController extends Controller
         DB::beginTransaction();
         try{
             $this->product_service->storeProduct($request);
-
             DB::commit();
             return redirect(route('lists'));
         }catch(Exception $e) {
             DB::rollBack();
         }
-
     }
 
     //商品詳細画面表示
     public function showDetail($id){
-        $product = DB::table('products')
-            ->join('companies', 'products.company_id', '=', 'companies.id')
-            ->select('products.*', 'companies.company_name')
-            ->where('products.id', '=', $id)
-            ->first();
-
+        $product = $this->product_model->getProductDetail($id);
         return view('detail', ['product' => $product]);
     }
 
     //商品編集画面表示
     public function showEdit($id){
         $companies = DB::table('companies')->get();
-
-        $products = DB::table('products')
-            ->join('companies', 'products.company_id', '=', 'companies.id')
-            ->select('products.*', 'companies.company_name')
-            ->where('products.id', '=', $id)
-            ->first();
-
-
+        $product = $this->product_model->getProductDetail($id);
         return view ('edit', ['companies' => $companies, 'product' => $product]);
     }
 
@@ -85,40 +69,12 @@ class ProductController extends Controller
     public function registEdit(ProductRequest $request, $id){
         DB::beginTransaction();
         try{
-            $image = $request->file('img_path');
-            if($image){
-                $filename = $image->getClientOriginalName();
-                $image->storeAs('public/images', $filename);
-                $img_path = 'storage/images/'.$filename;
-
-                DB::table('products')
-                ->where('products.id', '=', $id)
-                ->update([
-                    'product_name'=> $request->input('product_name'),
-                    'company_id' => $request->input('company_id'),
-                    'price' => $request->input('price'),
-                    'stock' => $request->input('stock'),
-                    'comment' => $request->input('comment'),
-                    'img_path' => $img_path
-                ]);
-            }else{
-                DB::table('products')
-                ->where('products.id', '=', $id)
-                ->update([
-                    'product_name'=> $request->input('product_name'),
-                    'company_id' => $request->input('company_id'),
-                    'price' => $request->input('price'),
-                    'stock' => $request->input('stock'),
-                    'comment' => $request->input('comment'),
-                ]);
-            }
-
+            $this->product_service->updateProduct($request, $id);
             DB::commit();
             return redirect(route('detail', ['id' => $id]));
         }catch(Exception $e) {
             DB::rollBack();
         }
-
     }
 
     //削除処理
@@ -126,9 +82,7 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try{
-            $products = DB::table('products')
-                ->where('products.id', '=', $id) ->delete();
-
+            $this->product_model->deleteProduct($id);
             DB::commit();
         }catch(Exception $e) {
             DB::rollBack();
