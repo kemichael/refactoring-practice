@@ -13,7 +13,7 @@ class ProductController extends Controller
 {
     // 一覧表示
     public function ichiran(Request $request){
-        $keyword = $request->input('keyword');
+        $namae = $request->input('keyword');
         $searchCompany = $request->input('search-company');
         $min_price = $request->input('min_price');
         $max_price = $request->input('max_price');
@@ -24,8 +24,8 @@ class ProductController extends Controller
                     ->join('companies', 'products.company_id', '=', 'companies.id')
                     ->select('products.*', 'companies.company_name');
 
-        if($keyword) {
-            $query->where('products.product_name', 'like', "%{$keyword}%");
+        if($namae) {
+            $query->where('products.product_name', 'like', "%{$namae}%");
         }
 
         if($searchCompany) {
@@ -148,8 +148,11 @@ class ProductController extends Controller
         try{
             $image = $request->file('img_path');
             if($image){
+                // ファイル名を取得
                 $filename = $image->getClientOriginalName();
+                // storageに保存
                 $image->storeAs('public/images', $filename);
+                // 文字列作成
                 $img_path = 'storage/images/'.$filename;
 
                 DB::table('products')
@@ -163,15 +166,15 @@ class ProductController extends Controller
                     'img_path' => $img_path
                 ]);
             }else{
-                DB::table('products')
-                ->where('products.id', '=', $id)
-                ->update([
-                    'product_name'=> $request->input('product_name'),
-                    'company_id' => $request->input('company_id'),
-                    'price' => $request->input('price'),
-                    'stock' => $request->input('stock'),
-                    'comment' => $request->input('comment'),
-                ]);
+            DB::table('products')
+            ->where('products.id', '=', $id)
+            ->update([
+                'product_name'=> $request->input('product_name'),
+                'company_id' => $request->input('company_id'),
+                'price' => $request->input('price'),
+                'stock' => $request->input('stock'),
+                'comment' => $request->input('comment'),
+            ]);
             }
 
             DB::commit();
@@ -185,16 +188,17 @@ class ProductController extends Controller
     //削除処理
     public function destroy($id)
     {
-        DB::beginTransaction();
-        try{
-            $products = DB::table('products')
-                ->where('products.id', '=', $id) ->delete();
+    // トランザクション開始
+    DB::beginTransaction();
+    try{
+    $products = DB::table('products')
+            ->where('products.id', '=', $id) ->delete();
 
-            DB::commit();
-        }catch(Exception $e) {
-            DB::rollBack();
-        }
-        return redirect()->route('lists');
+        DB::commit();
+    }catch(Exception $e) {
+        DB::rollBack();
+    }
+    return redirect()->route('lists');
     }
 
 }
