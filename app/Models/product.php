@@ -11,6 +11,7 @@ class Product extends Model
     use HasFactory;
     const PAGINATE_COUNT = 10;
 
+    protected $table = "products";
     /**
      * 商品検索クエリ
      *
@@ -18,7 +19,7 @@ class Product extends Model
      * @return void
      */
     public function searchProduct($request) {
-        $query = DB::table('products')
+        $query = DB::table($this->table)
                     ->join('companies', 'products.company_id', '=', 'companies.id')
                     ->select('products.*', 'companies.company_name');
 
@@ -59,7 +60,7 @@ class Product extends Model
      * @return void
      */
     public function storeProduct($data) {
-        DB::table('products')->insert($data);
+        DB::table($this->table)->insert($data);
     }
 
     /**
@@ -70,7 +71,7 @@ class Product extends Model
      * @return void
      */
     public function updateProduct($data, $id) {
-        DB::table('products')->where('id', $id)->update($data);
+        DB::table($this->table)->where('id', $id)->update($data);
     }
 
     /**
@@ -80,7 +81,7 @@ class Product extends Model
      * @return void
      */
     public function getProductDetail($id) {
-        return DB::table('products')
+        return DB::table($this->table)
             ->join('companies', 'products.company_id', '=', 'companies.id')
             ->select('products.*', 'companies.company_name')
             ->where('products.id', '=', $id)
@@ -94,7 +95,7 @@ class Product extends Model
      * @return void
      */
     public function deleteProduct($id) {
-        DB::table('products')->where('id', $id)->delete();
+        DB::table($this->table)->where('id', $id)->delete();
     }
 
 }

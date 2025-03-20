@@ -49,6 +49,7 @@ class ProductController extends Controller
             return redirect(route('lists'));
         }catch(Exception $e) {
             DB::rollBack();
+            Log::error($e);
         }
     }
 
@@ -74,6 +75,7 @@ class ProductController extends Controller
             return redirect(route('detail', ['id' => $id]));
         }catch(Exception $e) {
             DB::rollBack();
+            Log::error($e);
         }
     }
 
@@ -86,6 +88,7 @@ class ProductController extends Controller
             DB::commit();
         }catch(Exception $e) {
             DB::rollBack();
+            Log::error($e);
         }
         return redirect()->route('lists');
     }
