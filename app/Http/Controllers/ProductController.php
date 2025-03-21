@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\ProductService;
 use App\Http\Requests\ProductRequest;
 use App\Models\product;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,16 @@ use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
+    private $productService; 
+
+    //ProductServiceに準備した関数を$productServiceから呼び出せるようにする？
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService; 
+    }
+
+
+
     // 一覧表示
     public function ichiran(Request $request){
         $namae = $request->input('keyword');
@@ -111,31 +122,24 @@ class ProductController extends Controller
 
     //商品詳細画面表示
     public function showDetail($id){
-        $product = DB::table('products')
-            ->join('companies', 'products.company_id', '=', 'companies.id')
-            ->select('products.*', 'companies.company_name')
-            ->where('products.id', '=', $id)
-            ->first();
+        $product = $this->productService->getProductById($id);
 
         return view('detail', ['product' => $product]);
     }
 
     //商品編集画面表示
     public function showEdit($id){
-        $companies = DB::table('companies')->get();
+        $companies = $this->productService->getAllCompanies();
 
-        $products = DB::table('products')
-            ->join('companies', 'products.company_id', '=', 'companies.id')
-            ->select('products.*', 'companies.company_name')
-            ->where('products.id', '=', $id)
-            ->first();
-
+        $product = $this->productService->getProductById($id);
 
         return view ('edit', ['companies' => $companies, 'product' => $product]);
     }
 
     //商品編集
-    public function registEdit(Request $request, $id){
+    // 商品編集処理
+    public function registEdit(Request $request, $id)
+    {
         $request->validate([
             'product_name' => 'required|max:255',
             'company_id' => 'required|integer',
@@ -144,61 +148,17 @@ class ProductController extends Controller
             'comment' => 'nullable|max:255',
             'img_path' => 'nullable|image|max:2048',
         ]);
-        DB::beginTransaction();
-        try{
-            $image = $request->file('img_path');
-            if($image){
-                // ファイル名を取得
-                $filename = $image->getClientOriginalName();
-                // storageに保存
-                $image->storeAs('public/images', $filename);
-                // 文字列作成
-                $img_path = 'storage/images/'.$filename;
 
-                DB::table('products')
-                ->where('products.id', '=', $id)
-                ->update([
-                    'product_name'=> $request->input('product_name'),
-                    'company_id' => $request->input('company_id'),
-                    'price' => $request->input('price'),
-                    'stock' => $request->input('stock'),
-                    'comment' => $request->input('comment'),
-                    'img_path' => $img_path
-                ]);
-            }else{
-            DB::table('products')
-            ->where('products.id', '=', $id)
-            ->update([
-                'product_name'=> $request->input('product_name'),
-                'company_id' => $request->input('company_id'),
-                'price' => $request->input('price'),
-                'stock' => $request->input('stock'),
-                'comment' => $request->input('comment'),
-            ]);
-            }
-
-            DB::commit();
+            $this->productService->updateProduct($id, $request->all());
             return redirect(route('detail', ['id' => $id]));
-        }catch(Exception $e) {
-            DB::rollBack();
-        }
-
     }
 
     //削除処理
     public function destroy($id)
     {
-    // トランザクション開始
-    DB::beginTransaction();
-    try{
-    $products = DB::table('products')
-            ->where('products.id', '=', $id) ->delete();
+        $this->productService->deleteProduct($id);
 
-        DB::commit();
-    }catch(Exception $e) {
-        DB::rollBack();
-    }
-    return redirect()->route('lists');
+        return redirect()->route('lists');
     }
 
 }
