@@ -1,0 +1,24 @@
+/* 検索ボタン */
+.search-btn{
+    margin-top: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    left:500px;
+}
+
+.row{
+    position: relative;
+    left:center;
+    margin-top:10px;
+}
+.search-input{
+    width:40%;
+}
+
+.img_view{
+    width:100px;
+}
+
+.form-label{
+    width:20%;
+}
