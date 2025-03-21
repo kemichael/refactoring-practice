@@ -85,7 +85,7 @@ class ProductController extends Controller
         }
     }
 
-    // 商品詳細画面表示
+    // 商品詳細画面表
     public function showDetail($id)
     {
         $product = Product::with('company')->findOrFail($id);
